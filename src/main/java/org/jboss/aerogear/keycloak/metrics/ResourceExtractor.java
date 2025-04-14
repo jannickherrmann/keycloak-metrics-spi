@@ -13,6 +13,7 @@ class ResourceExtractor {
     private static final boolean URI_METRICS_ENABLED = Boolean.parseBoolean(System.getenv("URI_METRICS_ENABLED"));
     private static final boolean URI_METRICS_DETAILED = Boolean.parseBoolean(System.getenv("URI_METRICS_DETAILED"));
     private static final String URI_METRICS_FILTER = System.getenv("URI_METRICS_FILTER");
+    private static final boolean URI_METRICS_UUID_HIDDEN = Boolean.parseBoolean(System.getenv("URI_METRICS_UUID_HIDDEN"));
 
     private ResourceExtractor() {
     }
@@ -65,21 +66,23 @@ class ResourceExtractor {
     static String getURI(UriInfo uriInfo) {
         if (URI_METRICS_ENABLED) {
             List<String> matchedURIs = uriInfo.getMatchedURIs();
-            StringBuilder sb = new StringBuilder();
+            if (!matchedURIs.isEmpty()) {
+                StringBuilder sb = new StringBuilder();
 
-            if (URI_METRICS_FILTER != null && URI_METRICS_FILTER.length() != 0) {
-                String[] filter = URI_METRICS_FILTER.split(",");
+                if (URI_METRICS_FILTER != null && URI_METRICS_FILTER.length() != 0) {
+                    String[] filter = URI_METRICS_FILTER.split(",");
 
-                for (int i = 0; i < filter.length; i++) {
-                    if (matchedURIs.get(0).contains(filter[i])) {
+                    for (int i = 0; i < filter.length; i++) {
+                        if (matchedURIs.get(0).contains(filter[i])) {
 
-                        sb = getURIDetailed(sb, matchedURIs);
+                            sb = getURIDetailed(sb, matchedURIs);
+                        }
                     }
+                } else {
+                    sb = getURIDetailed(sb, matchedURIs);
                 }
-            } else {
-                sb = getURIDetailed(sb, matchedURIs);
+                return sb.toString();
             }
-            return sb.toString();
         }
         return "";
     }
@@ -89,13 +92,18 @@ class ResourceExtractor {
         String uri = matchedURIs.get(0);
 
         if (URI_METRICS_DETAILED) {
-            sb.append(uri);
+            if (URI_METRICS_UUID_HIDDEN) {
+                uri = uri.replaceAll("\\w{8}-\\w{4}-\\w{4}-\\w{4}-\\w{12}", "{id}");
+                sb.append(uri);
+            } else {
+                sb.append(uri);
+            }
         } else {
             String[] realm = uri.split("/");
             if (realm.length != 1) {
                 if (uri.startsWith("admin/realms/")) {
                     uri = uri.replace(realm[2], "{realm}");
-                    if (realm.length > 4 && realm[3].equals("clients")) {
+                    if (realm.length > 4 && (realm[3].equals("clients") || realm[3].equals("users"))) {
                         uri = uri.replace(realm[4], "{id}");
                     }
                 }

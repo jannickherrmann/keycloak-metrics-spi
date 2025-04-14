@@ -9,7 +9,7 @@ Two distinct providers are defined:
 * MetricsEventListener to record the internal Keycloak events
 * MetricsEndpoint to expose the data through a custom endpoint
 
-The endpoint is available under `<base url>/realms/<realm>/metrics` (Quarkus) or `<base url>/auth/realms/<realm>/metrics` (Wildfly). 
+The endpoint is available under `<base url>/realms/<realm>/metrics` (Quarkus). 
 It will return data for all realms, no matter which realm you use in the URL.
 
 ## License 
@@ -69,20 +69,6 @@ mvn clean package -Dkeycloak.version=15.0.0 -Dprometheus.version=0.9.0
 ```
 
 ## Install and setup
-
-### On Keycloak Widfly Distribution
-> This section assumes `/opt/jboss` as the Keycloak home directory, which is used on the _jboss/keycloak_ reference container on Docker Hub.
-
-- Drop the [jar](https://github.com/aerogear/keycloak-metrics-spi/releases/latest) into the _/opt/jboss/keycloak/standalone/deployments/_ subdirectory of your Keycloak installation.
-
-- Touch a dodeploy file into the _/opt/jboss/keycloak/standalone/deployments/_ subdirectory of your Keycloak installation.
-
-```bash
-# If your jar file is `keycloak-metrics-spi-2.0.2.jar`
-cd /opt/jboss/keycloak/standalone/deployments/
-touch keycloak-metrics-spi-2.0.2.jar.dodeploy
-```
-- Restart the keycloak service.
 
 ### On Keycloak Quarkus Distribution
 
@@ -424,6 +410,25 @@ keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/s
 keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/serverinfo",uri="",le="+Inf",} 1.0
 keycloak_request_duration_count{code="200",method="GET",resource="admin,admin/serverinfo",uri="",} 1.0
 keycloak_request_duration_sum{code="200",method="GET",resource="admin,admin/serverinfo",uri="",} 19.0
+```
+
+To replace `users` or `clients` UUID values by a generic `{id}` with ```URI_METRICS_DETAILED``` enabled,
+set ```URI_METRICS_UUID_HIDDEN``` to `true`
+
+```c
+# HELP keycloak_request_duration Request duration
+# TYPE keycloak_request_duration histogram
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="50.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="100.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="250.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="500.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="1000.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="2000.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="10000.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="30000.0",} 6.0
+keycloak_request_duration_bucket{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",le="+Inf",} 6.0
+keycloak_request_duration_count{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",} 6.0
+keycloak_request_duration_sum{code="200",method="GET",resource="admin,admin/realms",uri="admin/realms/master/users/{id}",} 41.0
 ```
 
 ## External Access
